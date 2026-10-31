@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Instrument+Serif&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-display: "Instrument Serif", Georgia, serif;
+}
+
+:root {
+  --bg: #fcfdfc;
+  --panel: #fbfcfb;
+  --text: #14231f;
+  --muted: #5d6b66;
+  --line: #d5dbd7;
+  --accent: #0f766e;
+  --accent-h: #0b5c56;
+  --onaccent: #ffffff;
+  --danger: #b42318;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1714;
+    --panel: #15211d;
+    --text: #e8efec;
+    --muted: #93a39c;
+    --line: #27372f;
+    --accent: #2dd4bf;
+    --accent-h: #5eead4;
+    --onaccent: #06201c;
+    --danger: #f97066;
+  }
+
+  input:is([type="month"], [type="date"])::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+  }
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}

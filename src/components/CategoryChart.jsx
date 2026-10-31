@@ -1,0 +1,41 @@
+import { PieChart, Pie, Cell } from 'recharts'
+import { percent } from '../lib/calculations'
+
+export default function CategoryChart({ totals, categories }) {
+  const entries = Object.entries(totals).sort((a, b) => b[1] - a[1])
+  const sum = entries.reduce((s, [, c]) => s + c, 0)
+  const data = entries.map(([name, value]) => ({ name, value }))
+  const colors = new Map(categories.map((category) => [category.name, category.color]))
+
+  return (
+    <div>
+      <h2 className="mb-2.5 text-base font-semibold">By category</h2>
+      <div className="flex flex-wrap items-center gap-3.5">
+        <PieChart width={130} height={130} role="img" aria-label="Spending by category">
+          {data.length === 0 ? (
+            <Pie data={[{ value: 1 }]} dataKey="value" innerRadius={40} outerRadius={62} stroke="none" isAnimationActive={false}>
+              <Cell fill="var(--line)" />
+            </Pie>
+          ) : (
+            <Pie data={data} dataKey="value" nameKey="name" innerRadius={40} outerRadius={62} stroke="none">
+              {data.map((d) => (
+                <Cell key={d.name} fill={colors.get(d.name) ?? '#6b7280'} />
+              ))}
+            </Pie>
+          )}
+        </PieChart>
+
+        <ul className="grid min-w-[130px] flex-1 gap-1.5 text-sm">
+          {data.length === 0 && <li className="text-[var(--muted)]">No spending yet</li>}
+          {data.map((d) => (
+            <li key={d.name} className="flex items-center gap-2">
+              <span className="size-[9px] rounded-full" style={{ background: colors.get(d.name) ?? '#6b7280' }} />
+              <span className="flex-1">{d.name}</span>
+              <em className="not-italic text-[var(--muted)] tabular-nums">{percent(d.value, sum)}%</em>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}

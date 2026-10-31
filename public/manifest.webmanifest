@@ -1,0 +1,22 @@
+{
+  "name": "Expense Tracker",
+  "short_name": "Expenses",
+  "description": "Track your expenses and monthly budget, even offline.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fcfdfc",
+  "theme_color": "#0e1714",
+  "icons": [
+    {
+      "src": "/expense-tracker-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/expense-tracker-favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
