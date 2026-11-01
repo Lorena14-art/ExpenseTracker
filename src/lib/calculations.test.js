@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { totalCents, totalsByCategory, totalsByDay, percent } from './calculations'
+import {
+  totalCents,
+  totalsByCategory,
+  totalsByDay,
+  percent,
+  filterExpensesByDateRange,
+  previousDateRange,
+} from './calculations'
 
 const sample = [
   { amountCents: 1000, category: 'Food', date: '2026-10-01' },
@@ -24,4 +31,19 @@ describe('calculations', () => {
     expect(days.every((day) => day.cents === 0)).toBe(true)
   })
   it('percent avoids divide by zero', () => expect(percent(5, 0)).toBe(0))
+  it('filters expenses inclusively by date range across month boundaries', () => {
+    expect(filterExpensesByDateRange(sample, '2026-10-02', '2026-11-01')).toEqual(
+      sample.slice(1)
+    )
+  })
+  it('returns the immediately preceding range with equal duration', () => {
+    expect(previousDateRange('2026-10-28', '2026-11-03')).toEqual({
+      startDate: '2026-10-21',
+      endDate: '2026-10-27',
+    })
+  })
+  it('handles empty expense lists and invalid ranges', () => {
+    expect(filterExpensesByDateRange([], '2026-10-01', '2026-10-31')).toEqual([])
+    expect(previousDateRange('2026-11-01', '2026-10-31')).toBeNull()
+  })
 })

@@ -125,6 +125,8 @@ function Stat({ label, value, description }) {
 
 export default function Analytics({ categories }) {
   const [period, setPeriod] = useState('month')
+  const [exportError, setExportError] = useState('')
+  const [pdfExportError, setPdfExportError] = useState('')
   const [selectedDate, setSelectedDate] = useState(today)
   const [customStart, setCustomStart] = useState(() => `${today().slice(0, 7)}-01`)
   const [customEnd, setCustomEnd] = useState(today)
@@ -206,6 +208,35 @@ export default function Analytics({ categories }) {
       })}`
     : ''
 
+  async function handleExportExcel() {
+    setExportError('')
+    try {
+      const allExpenses = await db.expenses.toArray()
+      const budgetCents = period === 'month'
+        ? (await db.budgets.get(startKey.slice(0, 7)))?.limitCents ?? 0
+        : 0
+      const { exportExcel } = await import('../lib/exportExcel')
+      await exportExcel(allExpenses, startKey, endKey, budgetCents)
+    } catch (error) {
+      console.error('Could not export analytics to Excel.', error)
+      setExportError('Could not export the selected period. Please try again.')
+    }
+  }
+
+  async function handleDownloadPdf() {
+    setPdfExportError('')
+    try {
+      const { exportPdf } = await import('../lib/exportPdf')
+      const budgetCents = period === 'month'
+        ? (await db.budgets.get(startKey.slice(0, 7)))?.limitCents ?? 0
+        : 0
+      exportPdf(expenses, startKey, endKey, budgetCents)
+    } catch (error) {
+      console.error('Could not create the analytics PDF.', error)
+      setPdfExportError('Could not create the PDF. Please try again.')
+    }
+  }
+
   function changePeriod(direction) {
     if (period === 'custom') {
       setCustomStart(dateKey(new Date(start.getFullYear(), start.getMonth(), start.getDate() + direction * rangeLength)))
@@ -224,6 +255,34 @@ export default function Analytics({ categories }) {
             Explore totals, category breakdowns, and transaction activity by time period.
           </p>
         </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={handleExportExcel}
+            disabled={!validRange}
+            className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-[var(--line)] bg-[var(--panel)] px-3 py-2 text-sm font-semibold hover:border-[var(--muted)] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="size-4 shrink-0">
+              <polyline points="17 3 21 3 21 7" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+              <line x1="11" y1="13" x2="21" y2="3" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+              <path d="M19 13.89V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h6.11" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+            </svg>
+            Excel
+          </button>
+          <button
+            type="button"
+            onClick={handleDownloadPdf}
+            disabled={!validRange}
+            className="cursor-pointer rounded-md border border-[var(--line)] bg-[var(--panel)] px-3 py-2 text-sm font-semibold hover:border-[var(--muted)] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Download PDF
+          </button>
+        </div>
+      </div>
+      {exportError && <p role="alert" className="text-sm text-[var(--danger)]">{exportError}</p>}
+      {pdfExportError && <p role="alert" className="text-sm text-[var(--danger)]">{pdfExportError}</p>}
+
+      <div className="flex justify-center">
         <div
           className="flex rounded-lg border border-[var(--line)] bg-[var(--panel)] p-1"
           role="group"
