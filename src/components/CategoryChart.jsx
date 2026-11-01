@@ -18,7 +18,7 @@ export default function CategoryChart({
     <div>
       <h2 className="text-base font-semibold">{title}</h2>
       {description && <p className="mt-1 mb-2.5 text-xs leading-relaxed text-[var(--muted)]">{description}</p>}
-      <div className="flex flex-wrap items-center gap-3.5">
+      <div className="flex flex-col items-center gap-3.5 sm:flex-row sm:items-center">
         <PieChart width={130} height={130} role="img" aria-label="Spending by category">
           {data.length === 0 ? (
             <Pie data={[{ value: 1 }]} dataKey="value" innerRadius={40} outerRadius={62} stroke="none" isAnimationActive={false}>
@@ -33,7 +33,7 @@ export default function CategoryChart({
           )}
         </PieChart>
 
-        <ul className="grid min-w-[130px] flex-1 gap-1.5 text-sm">
+        <ul className="grid w-full min-w-0 gap-1.5 text-sm sm:min-w-[130px] sm:flex-1">
           {data.length === 0 && <li className="text-[var(--muted)]">No spending yet</li>}
           {data.map((d) => (
             <li key={d.name} className="flex items-center gap-2">

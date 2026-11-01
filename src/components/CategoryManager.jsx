@@ -1,12 +1,18 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { db } from '../lib/db'
 
-export default function CategoryManager({ categories, onRenamed }) {
+export default function CategoryManager({ categories, onRenamed, openRequest = 0 }) {
   const [drafts, setDrafts] = useState({})
   const [newName, setNewName] = useState('')
   const [newColor, setNewColor] = useState('#0f766e')
   const [error, setError] = useState('')
   const dialog = useRef(null)
+
+  useEffect(() => {
+    if (openRequest > 0 && !dialog.current?.open) {
+      dialog.current?.showModal()
+    }
+  }, [openRequest])
 
   function isValidName(name, currentName = '') {
     const trimmedName = name.trim()
@@ -88,7 +94,7 @@ export default function CategoryManager({ categories, onRenamed }) {
         onClick={() => dialog.current?.showModal()}
         aria-haspopup="dialog"
         aria-controls="category-manager-dialog"
-        className="flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md border border-[var(--line)] bg-[var(--panel)] px-2.5 py-2.5 text-sm font-semibold hover:border-[var(--muted)] sm:px-3"
+        className="hidden shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md border border-[var(--line)] bg-[var(--panel)] px-2.5 py-2.5 text-sm font-semibold hover:border-[var(--muted)] sm:flex sm:px-3"
       >
         <svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true" className="size-4 shrink-0">
           <path d="M19 20.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0ZM15 5.5v10.551c.166-.019.329-.051.5-.051s.334.032.5.051V5.5a.5.5 0 0 0-1 0Zm0 19.449V26.5a.5.5 0 0 0 1 0v-1.551c-.166.019-.329.051-.5.051s-.334-.032-.5-.051Zm9-6v7.551a.5.5 0 0 0 1 0v-7.551c-.166.019-.329.051-.5.051s-.334-.032-.5-.051Zm0-8.898V5.5a.5.5 0 0 0-1 0v4.551c.166-.019.329-.051.5-.051s.334.032.5.051ZM6 7.051V5.5a.5.5 0 0 0-1 0v1.551c.166-.019.329-.051.5-.051s.334.032.5.051ZM5 15.949V26.5a.5.5 0 0 0 1 0V15.949c-.166.019-.329.051-.5.051s-.334-.032-.5-.051ZM6.5 8a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Zm18 3a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" />

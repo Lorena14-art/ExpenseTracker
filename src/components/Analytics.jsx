@@ -6,9 +6,11 @@ import { daysInMonth, today } from '../lib/dates'
 import { formatMoney } from '../lib/money'
 import CategoryChart from './CategoryChart'
 import TrendChart from './TrendChart'
+import Pagination from './Pagination'
 
 const periods = ['week', 'month', 'year', 'custom']
 const EMPTY_EXPENSES = []
+const TRANSACTION_PAGE_SIZE = 10
 
 function dateKey(date) {
   const year = date.getFullYear()
@@ -125,6 +127,7 @@ function Stat({ label, value, description }) {
 
 export default function Analytics({ categories }) {
   const [period, setPeriod] = useState('month')
+  const [transactionPage, setTransactionPage] = useState({ range: '', page: 1 })
   const [exportError, setExportError] = useState('')
   const [pdfExportError, setPdfExportError] = useState('')
   const [selectedDate, setSelectedDate] = useState(today)
@@ -196,6 +199,16 @@ export default function Analytics({ categories }) {
   const topCategoryShare = total ? Math.round((topCategoryTotal / total) * 100) : 0
   const categoryColors = new Map(categories.map((category) => [category.name, category.color]))
   const orderedExpenses = [...periodExpenses].sort((a, b) => b.date.localeCompare(a.date))
+  const transactionPageCount = Math.max(1, Math.ceil(orderedExpenses.length / TRANSACTION_PAGE_SIZE))
+  const rangeKey = `${startKey}:${endKey}`
+  const currentTransactionPage = Math.min(
+    transactionPage.range === rangeKey ? transactionPage.page : 1,
+    transactionPageCount
+  )
+  const pageTransactions = orderedExpenses.slice(
+    (currentTransactionPage - 1) * TRANSACTION_PAGE_SIZE,
+    currentTransactionPage * TRANSACTION_PAGE_SIZE
+  )
   const customRangeLabel = validRange
     ? `${start.toLocaleDateString('en-US', {
         month: 'short',
@@ -446,7 +459,7 @@ export default function Analytics({ categories }) {
         <h2 className="mb-2.5 text-base font-semibold">Transactions</h2>
         {orderedExpenses.length ? (
           <ul className="divide-y divide-[var(--line)]">
-            {orderedExpenses.map((expense) => (
+            {pageTransactions.map((expense) => (
               <li key={expense.id} className="flex min-w-0 items-center gap-3 py-3">
                 <span
                   className="size-[9px] shrink-0 rounded-full"
@@ -466,6 +479,14 @@ export default function Analytics({ categories }) {
           </ul>
         ) : (
           <p className="py-4 text-sm text-[var(--muted)]">No expenses for this period.</p>
+        )}
+        {orderedExpenses.length > 0 && (
+          <Pagination
+            page={currentTransactionPage}
+            pageSize={TRANSACTION_PAGE_SIZE}
+            total={orderedExpenses.length}
+            onPageChange={(page) => setTransactionPage({ range: rangeKey, page })}
+          />
         )}
       </section>
     </main>

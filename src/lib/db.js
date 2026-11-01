@@ -38,6 +38,25 @@ db.version(5)
       await categories.bulkPut(DEFAULT_CATEGORIES)
     }
   })
+db.version(6)
+  .stores({
+    expenses: '++id, date, category, [recurringId+recurringMonth]',
+    budgets: 'month',
+    categories: 'name',
+    recurringExpenses: '++id, category',
+    recurringOccurrences: '[recurringId+month], recurringId, month',
+  })
+  .upgrade(async (transaction) => {
+    const categories = transaction.table('categories')
+    for (const defaultCategory of DEFAULT_CATEGORIES) {
+      const existing = await categories.get(defaultCategory.name)
+      if (!existing) {
+        await categories.add(defaultCategory)
+      } else if (!/^#[0-9a-f]{6}$/i.test(existing.color ?? '')) {
+        await categories.put({ ...existing, color: defaultCategory.color })
+      }
+    }
+  })
 
 db.on('versionchange', () => db.close())
 
@@ -47,6 +66,10 @@ const DEFAULT_CATEGORIES = [
   { name: 'Bills', color: '#ef4444' },
   { name: 'Shopping', color: '#a855f7' },
   { name: 'Health', color: '#10b981' },
+  { name: 'Entertainment', color: '#ec4899' },
+  { name: 'Education', color: '#6366f1' },
+  { name: 'Travel', color: '#14b8a6' },
+  { name: 'Personal Care', color: '#eab308' },
   { name: 'Other', color: '#6b7280' },
 ]
 

@@ -4,7 +4,6 @@ import { db } from './lib/db'
 import { totalCents, totalsByCategory, totalsByDay } from './lib/calculations'
 import { formatMoney } from './lib/money'
 import { currentMonth, daysInMonth, pad, previousMonth } from './lib/dates'
-import { exportCSV } from './lib/exportCsv'
 import { addRecurringExpensesForMonth } from './lib/recurring'
 import ExpenseForm from './components/ExpenseForm'
 import MonthlyBudget from './components/MonthlyBudget'
@@ -43,6 +42,8 @@ function ExpenseTracker({ pinEnabled, onLock, onOpenPinSettings }) {
   const [view, setView] = useState('dashboard')
   const [editingExpense, setEditingExpense] = useState(null)
   const [recurringSyncError, setRecurringSyncError] = useState('')
+  const [categoryManagerRequest, setCategoryManagerRequest] = useState(0)
+  const [recurringExpensesRequest, setRecurringExpensesRequest] = useState(0)
 
   const expenses =
     useLiveQuery(
@@ -101,10 +102,6 @@ function ExpenseTracker({ pinEnabled, onLock, onOpenPinSettings }) {
     )
   }
 
-  async function exportAll() {
-    exportCSV(await db.expenses.toArray())
-  }
-
   function handleCategoryRenamed(previousName, nextName) {
     setEditingExpense((current) =>
       current?.category === previousName ? { ...current, category: nextName } : current
@@ -132,6 +129,8 @@ function ExpenseTracker({ pinEnabled, onLock, onOpenPinSettings }) {
           onOpenPinSettings={onOpenPinSettings}
           view={view}
           onNavigate={setView}
+          onOpenCategories={() => setCategoryManagerRequest((request) => request + 1)}
+          onOpenRecurring={() => setRecurringExpensesRequest((request) => request + 1)}
         />
       </header>
 
@@ -139,21 +138,26 @@ function ExpenseTracker({ pinEnabled, onLock, onOpenPinSettings }) {
         <Analytics categories={categories} />
       ) : (
       <>
-      <div className="mb-4 flex w-full flex-wrap items-center justify-between gap-2 pt-5 sm:pt-7">
+      <div className="mb-4 grid w-full min-w-0 gap-2 pt-5 sm:flex sm:items-center sm:justify-between sm:pt-7">
         <input
           type="month"
           value={month}
           onChange={(e) => e.target.value && setMonth(e.target.value)}
           aria-label="Month"
-          className="min-w-0 rounded-md border border-[var(--line)] bg-[var(--panel)] px-2.5 py-2"
+          className="box-border w-full min-w-0 rounded-md border border-[var(--line)] bg-[var(--panel)] px-2.5 py-2 sm:w-auto"
         />
-        <div className="flex max-w-full shrink-0 flex-wrap items-center justify-end gap-2">
-          <CategoryManager categories={categories} onRenamed={handleCategoryRenamed} />
+        <div className="flex w-full min-w-0 flex-wrap items-center justify-start gap-2 sm:w-auto sm:justify-end">
+          <CategoryManager
+            categories={categories}
+            onRenamed={handleCategoryRenamed}
+            openRequest={categoryManagerRequest}
+          />
           <RecurringExpenses
             month={month}
             categories={categories}
             recurringExpenses={recurringExpenses ?? []}
             syncError={recurringSyncError}
+            openRequest={recurringExpensesRequest}
           />
         </div>
       </div>
@@ -217,7 +221,6 @@ function ExpenseTracker({ pinEnabled, onLock, onOpenPinSettings }) {
           <ExpenseList
             expenses={expenses}
             categories={categories}
-            onExport={exportAll}
             onLoadSample={loadSample}
             onEdit={setEditingExpense}
             onDeleted={(id) => {
@@ -241,7 +244,15 @@ function Stat({ label, value }) {
   )
 }
 
-function AppActionsMenu({ pinEnabled, onLock, onOpenPinSettings, view, onNavigate }) {
+function AppActionsMenu({
+  pinEnabled,
+  onLock,
+  onOpenPinSettings,
+  view,
+  onNavigate,
+  onOpenCategories,
+  onOpenRecurring,
+}) {
   const [open, setOpen] = useState(false)
   const menuRef = useRef(null)
 
@@ -311,6 +322,22 @@ function AppActionsMenu({ pinEnabled, onLock, onOpenPinSettings, view, onNavigat
           className="cursor-pointer rounded-md px-3 py-2 text-left text-sm hover:bg-[var(--bg)]"
         >
           Analytics
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => choose(onOpenCategories)}
+          className="cursor-pointer rounded-md px-3 py-2 text-left text-sm hover:bg-[var(--bg)] sm:hidden"
+        >
+          Manage categories
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => choose(onOpenRecurring)}
+          className="cursor-pointer rounded-md px-3 py-2 text-left text-sm hover:bg-[var(--bg)] sm:hidden"
+        >
+          Recurring expenses
         </button>
         <InstallAppButton onInstallComplete={() => setOpen(false)} />
         <button

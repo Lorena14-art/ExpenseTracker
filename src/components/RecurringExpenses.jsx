@@ -1,14 +1,26 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { db } from '../lib/db'
 import { formatMoney, toCents } from '../lib/money'
 
-export default function RecurringExpenses({ month, categories, recurringExpenses, syncError }) {
+export default function RecurringExpenses({
+  month,
+  categories,
+  recurringExpenses,
+  syncError,
+  openRequest = 0,
+}) {
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState('')
   const [dayOfMonth, setDayOfMonth] = useState('1')
   const [note, setNote] = useState('')
   const [error, setError] = useState('')
   const dialog = useRef(null)
+
+  useEffect(() => {
+    if (openRequest > 0 && !dialog.current?.open) {
+      dialog.current?.showModal()
+    }
+  }, [openRequest])
 
   async function addRecurringExpense(event) {
     event.preventDefault()
@@ -59,7 +71,7 @@ export default function RecurringExpenses({ month, categories, recurringExpenses
         onClick={() => dialog.current?.showModal()}
         aria-haspopup="dialog"
         aria-controls="recurring-expenses-dialog"
-        className="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-md border border-[var(--line)] bg-[var(--panel)] px-3 py-2 text-sm font-semibold hover:border-[var(--muted)]"
+        className="hidden shrink-0 cursor-pointer items-center gap-2 rounded-md border border-[var(--line)] bg-[var(--panel)] px-3 py-2 text-sm font-semibold hover:border-[var(--muted)] sm:inline-flex"
       >
         <svg
           aria-hidden="true"

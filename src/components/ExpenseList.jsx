@@ -1,18 +1,55 @@
 import { useEffect, useRef, useState } from 'react'
 import { db } from '../lib/db'
 import { formatMoney } from '../lib/money'
+import Pagination from './Pagination'
 
-export default function ExpenseList({ expenses, categories, onExport, onLoadSample, onEdit, onDeleted }) {
+const PAGE_SIZE = 5
+
+export default function ExpenseList({ expenses, categories, onLoadSample, onEdit, onDeleted }) {
   const [expenseToDelete, setExpenseToDelete] = useState(null)
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
+  const [sortOrder, setSortOrder] = useState('newest')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+  const [amountMin, setAmountMin] = useState('')
+  const [amountMax, setAmountMax] = useState('')
+  const [page, setPage] = useState(1)
   const deleteDialog = useRef(null)
   const activeCategory = categories.some((item) => item.name === category) ? category : ''
+  const hasActiveFilters = Boolean(
+    search.trim() || activeCategory || dateFrom || dateTo || amountMin || amountMax
+  )
+  const minAmountCents = amountMin === '' ? null : Math.round(Number(amountMin) * 100)
+  const maxAmountCents = amountMax === '' ? null : Math.round(Number(amountMax) * 100)
   const filteredExpenses = expenses.filter((expense) => {
     const matchesCategory = !activeCategory || expense.category === activeCategory
     const matchesSearch = (expense.note ?? '').toLowerCase().includes(search.trim().toLowerCase())
-    return matchesCategory && matchesSearch
+    const matchesDateFrom = !dateFrom || expense.date >= dateFrom
+    const matchesDateTo = !dateTo || expense.date <= dateTo
+    const matchesAmountMin = minAmountCents === null || expense.amountCents >= minAmountCents
+    const matchesAmountMax = maxAmountCents === null || expense.amountCents <= maxAmountCents
+    return (
+      matchesCategory &&
+      matchesSearch &&
+      matchesDateFrom &&
+      matchesDateTo &&
+      matchesAmountMin &&
+      matchesAmountMax
+    )
+  }).sort((first, second) => {
+    if (sortOrder === 'oldest') return first.date.localeCompare(second.date)
+    if (sortOrder === 'amount-high') return second.amountCents - first.amountCents
+    if (sortOrder === 'amount-low') return first.amountCents - second.amountCents
+    if (sortOrder === 'category') return first.category.localeCompare(second.category)
+    return second.date.localeCompare(first.date)
   })
+  const pageCount = Math.max(1, Math.ceil(filteredExpenses.length / PAGE_SIZE))
+  const currentPage = Math.min(page, pageCount)
+  const pageExpenses = filteredExpenses.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  )
 
   useEffect(() => {
     if (expenseToDelete && !deleteDialog.current?.open) {
@@ -31,38 +68,150 @@ export default function ExpenseList({ expenses, categories, onExport, onLoadSamp
     <section>
       <div className="flex items-center justify-between pt-[22px]">
         <h2 className="mb-2.5 text-base font-semibold">Expenses</h2>
-        <button
-          type="button"
-          onClick={onExport}
-          className="shrink-0 cursor-pointer rounded-md border border-[var(--line)] px-2.5 py-1.5 text-sm text-[var(--muted)] hover:border-[var(--muted)] hover:text-[var(--text)]"
-        >
-          Export CSV
-        </button>
       </div>
 
       {expenses.length > 0 && (
-        <div className="mt-3 mb-3 grid gap-2 sm:grid-cols-[1fr_auto]">
-          <label className="sr-only" htmlFor="expense-search">Search expense notes</label>
-          <input
-            id="expense-search"
-            type="search"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search notes"
-            className="w-full rounded-md border border-[var(--line)] bg-[var(--panel)] px-2.5 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-          />
-          <label className="sr-only" htmlFor="expense-category-filter">Filter by category</label>
-          <select
-            id="expense-category-filter"
-            value={activeCategory}
-            onChange={(event) => setCategory(event.target.value)}
-            className="min-w-0 rounded-md border border-[var(--line)] bg-[var(--panel)] px-2.5 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-          >
-            <option value="">All categories</option>
-            {categories.map((item) => (
-              <option key={item.name} value={item.name}>{item.name}</option>
-            ))}
-          </select>
+        <div className="mt-3 mb-3 grid gap-2">
+          <div className="grid gap-2 sm:grid-cols-3">
+            <label className="sr-only" htmlFor="expense-search">Search expense notes</label>
+            <input
+              id="expense-search"
+              type="search"
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value)
+                setPage(1)
+              }}
+              placeholder="Search notes"
+              className="w-full min-w-0 rounded-md border border-[var(--line)] bg-[var(--panel)] px-2.5 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+            />
+            <label className="sr-only" htmlFor="expense-category-filter">Filter by category</label>
+            <select
+              id="expense-category-filter"
+              value={activeCategory}
+              onChange={(event) => {
+                setCategory(event.target.value)
+                setPage(1)
+              }}
+              className="min-w-0 rounded-md border border-[var(--line)] bg-[var(--panel)] px-2.5 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+            >
+              <option value="">All categories</option>
+              {categories.map((item) => (
+                <option key={item.name} value={item.name}>{item.name}</option>
+              ))}
+            </select>
+            <label className="sr-only" htmlFor="expense-sort">Sort expenses</label>
+            <select
+              id="expense-sort"
+              value={sortOrder}
+              onChange={(event) => {
+                setSortOrder(event.target.value)
+                setPage(1)
+              }}
+              className="min-w-0 rounded-md border border-[var(--line)] bg-[var(--panel)] px-2.5 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+            >
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+              <option value="amount-high">Amount: high to low</option>
+              <option value="amount-low">Amount: low to high</option>
+              <option value="category">Category: A to Z</option>
+            </select>
+          </div>
+          <details className="rounded-md border border-[var(--line)] bg-[var(--panel)] px-3 py-2">
+            <summary className="cursor-pointer text-sm font-medium">More filters</summary>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="min-w-0">
+                  <label htmlFor="expense-date-from" className="mb-1 block text-xs text-[var(--muted)]">
+                    From date
+                  </label>
+                  <input
+                    id="expense-date-from"
+                    type="date"
+                    value={dateFrom}
+                    max={dateTo || undefined}
+                    onChange={(event) => {
+                      setDateFrom(event.target.value)
+                      setPage(1)
+                    }}
+                    className="w-full min-w-0 rounded-md border border-[var(--line)] bg-[var(--bg)] px-2 py-2 text-sm"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <label htmlFor="expense-date-to" className="mb-1 block text-xs text-[var(--muted)]">
+                    To date
+                  </label>
+                  <input
+                    id="expense-date-to"
+                    type="date"
+                    value={dateTo}
+                    min={dateFrom || undefined}
+                    onChange={(event) => {
+                      setDateTo(event.target.value)
+                      setPage(1)
+                    }}
+                    className="w-full min-w-0 rounded-md border border-[var(--line)] bg-[var(--bg)] px-2 py-2 text-sm"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="min-w-0">
+                  <label htmlFor="expense-amount-min" className="mb-1 block text-xs text-[var(--muted)]">
+                    Minimum amount (PHP)
+                  </label>
+                  <input
+                    id="expense-amount-min"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    value={amountMin}
+                    onChange={(event) => {
+                      setAmountMin(event.target.value)
+                      setPage(1)
+                    }}
+                    className="w-full min-w-0 rounded-md border border-[var(--line)] bg-[var(--bg)] px-2 py-2 text-sm"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <label htmlFor="expense-amount-max" className="mb-1 block text-xs text-[var(--muted)]">
+                    Maximum amount (PHP)
+                  </label>
+                  <input
+                    id="expense-amount-max"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    value={amountMax}
+                    onChange={(event) => {
+                      setAmountMax(event.target.value)
+                      setPage(1)
+                    }}
+                    className="w-full min-w-0 rounded-md border border-[var(--line)] bg-[var(--bg)] px-2 py-2 text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          </details>
+          {(hasActiveFilters || sortOrder !== 'newest') && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearch('')
+                setCategory('')
+                setDateFrom('')
+                setDateTo('')
+                setAmountMin('')
+                setAmountMax('')
+                setSortOrder('newest')
+                setPage(1)
+              }}
+              className="justify-self-start cursor-pointer text-sm text-[var(--muted)] underline hover:text-[var(--text)]"
+            >
+              Clear filters and sorting
+            </button>
+          )}
         </div>
       )}
 
@@ -78,10 +227,10 @@ export default function ExpenseList({ expenses, categories, onExport, onLoadSamp
           </button>
         </p>
       ) : filteredExpenses.length === 0 ? (
-        <p className="py-4 text-[var(--muted)]">No expenses match your search or category filter.</p>
+        <p className="py-4 text-[var(--muted)]">No expenses match your current filters.</p>
       ) : (
         <ul>
-          {filteredExpenses.map((e) => (
+          {pageExpenses.map((e) => (
             <li key={e.id} className="flex min-w-0 items-center gap-2 border-b border-[var(--line)] py-[11px] sm:gap-3">
               <span
                 className="size-[9px] shrink-0 rounded-full"
@@ -144,6 +293,14 @@ export default function ExpenseList({ expenses, categories, onExport, onLoadSamp
             </li>
           ))}
         </ul>
+      )}
+      {filteredExpenses.length > 0 && (
+        <Pagination
+          page={currentPage}
+          pageSize={PAGE_SIZE}
+          total={filteredExpenses.length}
+          onPageChange={setPage}
+        />
       )}
 
       {expenseToDelete && (
