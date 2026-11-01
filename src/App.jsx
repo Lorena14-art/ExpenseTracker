@@ -15,6 +15,7 @@ import InstallAppButton from './components/InstallAppButton'
 import PinGate from './components/PinGate'
 import CategoryChart from './components/CategoryChart'
 import TrendChart from './components/TrendChart'
+import Analytics from './components/Analytics'
 
 const SAMPLE = [
   ['Food', 35000, 'Groceries'],
@@ -39,6 +40,7 @@ export default function App() {
 
 function ExpenseTracker({ pinEnabled, onLock, onOpenPinSettings }) {
   const [month, setMonth] = useState(currentMonth())
+  const [view, setView] = useState('dashboard')
   const [editingExpense, setEditingExpense] = useState(null)
   const [recurringSyncError, setRecurringSyncError] = useState('')
 
@@ -112,19 +114,32 @@ function ExpenseTracker({ pinEnabled, onLock, onOpenPinSettings }) {
   return (
     <div className="mx-auto max-w-[980px] px-4 pt-5 pb-10 sm:px-[18px] sm:pt-7 sm:pb-14">
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <img
-          src="/expense-tracker-logo.png"
-          alt="Expense Tracker"
-          className="h-12 w-auto max-w-[70vw] object-contain sm:h-16 sm:max-w-none"
-        />
+        <button
+          type="button"
+          onClick={() => setView('dashboard')}
+          aria-label="Go to dashboard"
+          className="cursor-pointer rounded-sm text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--accent)]"
+        >
+          <img
+            src="/expense-tracker-logo.png"
+            alt="Expense Tracker"
+            className="h-12 w-auto max-w-[70vw] object-contain sm:h-16 sm:max-w-none"
+          />
+        </button>
         <AppActionsMenu
           pinEnabled={pinEnabled}
           onLock={onLock}
           onOpenPinSettings={onOpenPinSettings}
+          view={view}
+          onNavigate={setView}
         />
       </header>
 
-      <div className="mb-4 flex w-full items-center justify-between gap-2 pt-5 sm:pt-7">
+      {view === 'analytics' ? (
+        <Analytics categories={categories} />
+      ) : (
+      <>
+      <div className="mb-4 flex w-full flex-wrap items-center justify-between gap-2 pt-5 sm:pt-7">
         <input
           type="month"
           value={month}
@@ -132,12 +147,15 @@ function ExpenseTracker({ pinEnabled, onLock, onOpenPinSettings }) {
           aria-label="Month"
           className="min-w-0 rounded-md border border-[var(--line)] bg-[var(--panel)] px-2.5 py-2"
         />
-        <RecurringExpenses
-          month={month}
-          categories={categories}
-          recurringExpenses={recurringExpenses ?? []}
-          syncError={recurringSyncError}
-        />
+        <div className="flex max-w-full shrink-0 flex-wrap items-center justify-end gap-2">
+          <CategoryManager categories={categories} onRenamed={handleCategoryRenamed} />
+          <RecurringExpenses
+            month={month}
+            categories={categories}
+            recurringExpenses={recurringExpenses ?? []}
+            syncError={recurringSyncError}
+          />
+        </div>
       </div>
 
       <section className="grid min-w-0 items-end gap-6 border-b border-[var(--line)] pt-7 pb-5 sm:gap-7 sm:pt-[34px] sm:pb-[26px] md:grid-cols-[1.3fr_1fr]">
@@ -189,7 +207,6 @@ function ExpenseTracker({ pinEnabled, onLock, onOpenPinSettings }) {
             editingExpense={editingExpense}
             onEditingComplete={() => setEditingExpense(null)}
           />
-          <CategoryManager categories={categories} onRenamed={handleCategoryRenamed} />
         </div>
 
         <div>
@@ -209,6 +226,8 @@ function ExpenseTracker({ pinEnabled, onLock, onOpenPinSettings }) {
           />
         </div>
       </div>
+      </>
+      )}
     </div>
   )
 }
@@ -222,7 +241,7 @@ function Stat({ label, value }) {
   )
 }
 
-function AppActionsMenu({ pinEnabled, onLock, onOpenPinSettings }) {
+function AppActionsMenu({ pinEnabled, onLock, onOpenPinSettings, view, onNavigate }) {
   const [open, setOpen] = useState(false)
   const menuRef = useRef(null)
 
@@ -275,6 +294,24 @@ function AppActionsMenu({ pinEnabled, onLock, onOpenPinSettings }) {
         hidden={!open}
         className="absolute right-0 z-10 mt-2 grid min-w-40 gap-1 rounded-lg border border-[var(--line)] bg-[var(--panel)] p-1.5 shadow-lg"
       >
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => choose(() => onNavigate('dashboard'))}
+          aria-current={view === 'dashboard' ? 'page' : undefined}
+          className="cursor-pointer rounded-md px-3 py-2 text-left text-sm hover:bg-[var(--bg)]"
+        >
+          Dashboard
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => choose(() => onNavigate('analytics'))}
+          aria-current={view === 'analytics' ? 'page' : undefined}
+          className="cursor-pointer rounded-md px-3 py-2 text-left text-sm hover:bg-[var(--bg)]"
+        >
+          Analytics
+        </button>
         <InstallAppButton onInstallComplete={() => setOpen(false)} />
         <button
           type="button"

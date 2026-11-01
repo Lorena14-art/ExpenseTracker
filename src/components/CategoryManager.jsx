@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { db } from '../lib/db'
 
 export default function CategoryManager({ categories, onRenamed }) {
@@ -6,6 +6,7 @@ export default function CategoryManager({ categories, onRenamed }) {
   const [newName, setNewName] = useState('')
   const [newColor, setNewColor] = useState('#0f766e')
   const [error, setError] = useState('')
+  const dialog = useRef(null)
 
   function isValidName(name, currentName = '') {
     const trimmedName = name.trim()
@@ -81,11 +82,39 @@ export default function CategoryManager({ categories, onRenamed }) {
   }
 
   return (
-    <details className="rounded-[10px] border border-[var(--line)] bg-[var(--panel)]">
-      <summary className="cursor-pointer px-4 py-3 text-sm font-semibold">
+    <>
+      <button
+        type="button"
+        onClick={() => dialog.current?.showModal()}
+        aria-haspopup="dialog"
+        aria-controls="category-manager-dialog"
+        className="flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md border border-[var(--line)] bg-[var(--panel)] px-2.5 py-2.5 text-sm font-semibold hover:border-[var(--muted)] sm:px-3"
+      >
+        <svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true" className="size-4 shrink-0">
+          <path d="M19 20.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0ZM15 5.5v10.551c.166-.019.329-.051.5-.051s.334.032.5.051V5.5a.5.5 0 0 0-1 0Zm0 19.449V26.5a.5.5 0 0 0 1 0v-1.551c-.166.019-.329.051-.5.051s-.334-.032-.5-.051Zm9-6v7.551a.5.5 0 0 0 1 0v-7.551c-.166.019-.329.051-.5.051s-.334-.032-.5-.051Zm0-8.898V5.5a.5.5 0 0 0-1 0v4.551c.166-.019.329-.051.5-.051s.334.032.5.051ZM6 7.051V5.5a.5.5 0 0 0-1 0v1.551c.166-.019.329-.051.5-.051s.334.032.5.051ZM5 15.949V26.5a.5.5 0 0 0 1 0V15.949c-.166.019-.329.051-.5.051s-.334-.032-.5-.051ZM6.5 8a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Zm18 3a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" />
+        </svg>
         Manage categories
-      </summary>
-      <div className="grid gap-3 border-t border-[var(--line)] p-4">
+      </button>
+      <dialog
+        ref={dialog}
+        id="category-manager-dialog"
+        aria-labelledby="category-manager-title"
+        className="m-auto max-h-[calc(100dvh-1rem)] w-[calc(100%-1rem)] max-w-lg overflow-y-auto rounded-xl border border-[var(--line)] bg-[var(--panel)] p-0 text-[var(--text)] shadow-xl backdrop:bg-black/50 sm:max-h-[calc(100dvh-2rem)] sm:w-[calc(100%-2rem)]"
+      >
+        <div className="sticky top-0 flex items-center justify-between border-b border-[var(--line)] bg-[var(--panel)] px-4 py-3">
+          <h2 id="category-manager-title" className="text-base font-semibold">
+            Manage categories
+          </h2>
+          <button
+            type="button"
+            onClick={() => dialog.current?.close()}
+            aria-label="Close category manager"
+            className="cursor-pointer rounded-md px-2 py-1 text-[var(--muted)] hover:text-[var(--text)]"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="grid gap-3 p-3 sm:p-4">
         <ul className="grid gap-3">
           {categories.map((category) => {
             const draft = drafts[category.name] ?? category
@@ -93,7 +122,7 @@ export default function CategoryManager({ categories, onRenamed }) {
               <li key={category.name}>
                 <form
                   onSubmit={(event) => saveCategory(category, event)}
-                  className="grid grid-cols-[minmax(0,1fr)_2.75rem_auto] items-center gap-2"
+                  className="grid grid-cols-[minmax(0,1fr)_2.75rem] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_2.75rem_auto]"
                 >
                   <label className="sr-only" htmlFor={`category-name-${category.name}`}>
                     Category name
@@ -127,7 +156,7 @@ export default function CategoryManager({ categories, onRenamed }) {
                   />
                   <button
                     type="submit"
-                    className="cursor-pointer rounded-md border border-[var(--line)] px-2 py-2 text-xs font-medium hover:border-[var(--muted)]"
+                    className="col-span-2 w-full cursor-pointer rounded-md border border-[var(--line)] px-2 py-2 text-xs font-medium hover:border-[var(--muted)] sm:col-span-1 sm:w-auto"
                   >
                     Save
                   </button>
@@ -137,7 +166,7 @@ export default function CategoryManager({ categories, onRenamed }) {
           })}
         </ul>
 
-        <form onSubmit={addCategory} className="grid grid-cols-[minmax(0,1fr)_2.75rem_auto] items-center gap-2 border-t border-[var(--line)] pt-3">
+        <form onSubmit={addCategory} className="grid grid-cols-[minmax(0,1fr)_2.75rem] items-center gap-2 border-t border-[var(--line)] pt-3 sm:grid-cols-[minmax(0,1fr)_2.75rem_auto]">
           <label className="sr-only" htmlFor="new-category-name">New category name</label>
           <input
             id="new-category-name"
@@ -157,13 +186,14 @@ export default function CategoryManager({ categories, onRenamed }) {
           />
           <button
             type="submit"
-            className="cursor-pointer rounded-md bg-[var(--accent)] px-2.5 py-2 text-xs font-semibold text-[var(--onaccent)] hover:bg-[var(--accent-h)]"
+            className="col-span-2 w-full cursor-pointer rounded-md bg-[var(--accent)] px-2.5 py-2 text-xs font-semibold text-[var(--onaccent)] hover:bg-[var(--accent-h)] sm:col-span-1 sm:w-auto"
           >
             Add
           </button>
         </form>
         {error && <p role="alert" className="text-sm text-[var(--danger)]">{error}</p>}
       </div>
-    </details>
+      </dialog>
+    </>
   )
 }
