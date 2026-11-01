@@ -23,4 +23,4 @@ Use Analytics from the header menu to review spending by week, month, year, or a
 
 The production build includes an installable PWA and caches the app shell for offline use. Service workers require HTTPS, except on localhost. Use `npm run build` and `npm run preview` to test the installable/offline build; the Vite development server does not register the production service worker.
 
-An optional six-digit app PIN can be set from the header. The app asks for it on the next launch, and can also be locked manually. The PIN is stored as a salted hash, but this convenience lock does not encrypt IndexedDB expense data.
+A six-digit app PIN must be set before using the app. The app asks for it on each launch and can also be locked manually. The PIN is stored as a salted hash, but this convenience lock does not encrypt IndexedDB expense data.

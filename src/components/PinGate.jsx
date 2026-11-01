@@ -24,13 +24,7 @@ const buttonClass =
 
 export default function PinGate({ children }) {
   const [savedPin, setSavedPin] = useState(readSavedPin)
-  const [unlocked, setUnlocked] = useState(() => {
-    try {
-      return !loadPinCredential()
-    } catch {
-      return false
-    }
-  })
+  const [unlocked, setUnlocked] = useState(false)
   const [pin, setPin] = useState('')
   const [confirmation, setConfirmation] = useState('')
   const [error, setError] = useState('')
@@ -74,6 +68,7 @@ export default function PinGate({ children }) {
     try {
       const credential = await createPinCredential(pin)
       setSavedPin({ credential, error: '' })
+      setUnlocked(true)
       setSettingsOpen(false)
       setPin('')
       setConfirmation('')
@@ -116,6 +111,62 @@ export default function PinGate({ children }) {
         <p role="alert" className="text-sm text-[var(--danger)]">{savedPin.error}</p>
         <p className="text-sm text-[var(--muted)]">
           This lock only hides the app interface; it does not encrypt expenses stored in this browser.
+        </p>
+      </main>
+    )
+  }
+
+  if (!savedPin.credential) {
+    return (
+      <main className="mx-auto grid min-h-dvh max-w-sm content-center gap-5 px-5 text-[var(--text)]">
+        <img
+          src="/expense-tracker-logo.png"
+          alt="Expense Tracker"
+          className="mx-auto h-16 w-auto max-w-full object-contain"
+        />
+        <form onSubmit={savePin} className="grid gap-3">
+          <h1 className="text-center text-xl font-semibold">Set your app PIN</h1>
+          <p className="text-center text-sm text-[var(--muted)]">
+            Create a six-digit PIN to continue to Expense Tracker.
+          </p>
+          <label htmlFor="new-pin" className="text-sm">Six-digit PIN</label>
+          <input
+            id="new-pin"
+            type="password"
+            inputMode="numeric"
+            autoComplete="new-password"
+            pattern="[0-9]{6}"
+            maxLength={6}
+            required
+            autoFocus
+            value={pin}
+            onChange={(event) => {
+              setPin(event.target.value.replace(/\D/g, '').slice(0, 6))
+              setError('')
+            }}
+            className={pinInputClass}
+          />
+          <label htmlFor="confirm-pin" className="text-sm">Confirm PIN</label>
+          <input
+            id="confirm-pin"
+            type="password"
+            inputMode="numeric"
+            autoComplete="new-password"
+            pattern="[0-9]{6}"
+            maxLength={6}
+            required
+            value={confirmation}
+            onChange={(event) => {
+              setConfirmation(event.target.value.replace(/\D/g, '').slice(0, 6))
+              setError('')
+            }}
+            className={pinInputClass}
+          />
+          {error && <p role="alert" className="text-sm text-[var(--danger)]">{error}</p>}
+          <button type="submit" className={buttonClass}>Set PIN and continue</button>
+        </form>
+        <p className="text-center text-xs text-[var(--muted)]">
+          This PIN hides the app screen but does not encrypt your locally stored data.
         </p>
       </main>
     )
