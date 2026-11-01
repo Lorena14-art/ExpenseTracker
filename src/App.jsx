@@ -171,11 +171,11 @@ function ExpenseTracker({ pinEnabled, onLock, onOpenPinSettings }) {
           {previousTotal !== null && (
             <p
               className={`mt-1 text-sm ${
-                total > previousTotal
+                previousTotal === 0 || total === previousTotal
+                  ? 'text-[var(--muted)]'
+                  : total > previousTotal
                   ? 'text-[var(--danger)]'
-                  : total < previousTotal
-                    ? 'text-[var(--accent)]'
-                    : 'text-[var(--muted)]'
+                  : 'text-[var(--accent)]'
               }`}
             >
               {previousTotal > 0 ? (

@@ -122,7 +122,7 @@ export default function PinGate({ children }) {
         <img
           src="/expense-tracker-logo.png"
           alt="Expense Tracker"
-          className="mx-auto h-16 w-auto max-w-full object-contain"
+          className="mx-auto h-20 w-auto max-w-full object-contain"
         />
         <form onSubmit={savePin} className="grid gap-3">
           <h1 className="text-center text-xl font-semibold">Set your app PIN</h1>
@@ -178,7 +178,7 @@ export default function PinGate({ children }) {
         <img
           src="/expense-tracker-logo.png"
           alt="Expense Tracker"
-          className="mx-auto h-16 w-auto max-w-full object-contain"
+          className="mx-auto h-20 w-auto max-w-full object-contain"
         />
         <form onSubmit={unlock} className="grid gap-3">
           <label htmlFor="unlock-pin" className="text-center text-sm text-[var(--muted)]">

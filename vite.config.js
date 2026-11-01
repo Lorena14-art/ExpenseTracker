@@ -17,8 +17,8 @@ const offlineApp = {
       "/index.html",
       "/manifest.webmanifest",
       "/expense-tracker-logo.png",
-      "/expense-tracker-favicon.png",
-      "/expense-tracker-icon-192.png",
+      "/expense-tracker-favicon.png?v=2",
+      "/expense-tracker-icon-192.png?v=2",
       ...appFiles.map((fileName) => `/${fileName}`),
     ];
     const version = appFiles.map((fileName) => fileName.replace(/[^\w-]/g, "_")).join("_");

@@ -71,53 +71,51 @@ export default function ExpenseList({ expenses, categories, onLoadSample, onEdit
       </div>
 
       {expenses.length > 0 && (
-        <div className="mt-3 mb-3 grid gap-2">
-          <div className="grid gap-2 sm:grid-cols-3">
-            <label className="sr-only" htmlFor="expense-search">Search expense notes</label>
-            <input
-              id="expense-search"
-              type="search"
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value)
-                setPage(1)
-              }}
-              placeholder="Search notes"
-              className="w-full min-w-0 rounded-md border border-[var(--line)] bg-[var(--panel)] px-2.5 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-            />
-            <label className="sr-only" htmlFor="expense-category-filter">Filter by category</label>
-            <select
-              id="expense-category-filter"
-              value={activeCategory}
-              onChange={(event) => {
-                setCategory(event.target.value)
-                setPage(1)
-              }}
-              className="min-w-0 rounded-md border border-[var(--line)] bg-[var(--panel)] px-2.5 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-            >
-              <option value="">All categories</option>
-              {categories.map((item) => (
-                <option key={item.name} value={item.name}>{item.name}</option>
-              ))}
-            </select>
-            <label className="sr-only" htmlFor="expense-sort">Sort expenses</label>
-            <select
-              id="expense-sort"
-              value={sortOrder}
-              onChange={(event) => {
-                setSortOrder(event.target.value)
-                setPage(1)
-              }}
-              className="min-w-0 rounded-md border border-[var(--line)] bg-[var(--panel)] px-2.5 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-            >
-              <option value="newest">Newest first</option>
-              <option value="oldest">Oldest first</option>
-              <option value="amount-high">Amount: high to low</option>
-              <option value="amount-low">Amount: low to high</option>
-              <option value="category">Category: A to Z</option>
-            </select>
-          </div>
-          <details className="rounded-md border border-[var(--line)] bg-[var(--panel)] px-3 py-2">
+        <div className="mt-3 mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <label className="sr-only" htmlFor="expense-search">Search expense notes</label>
+          <input
+            id="expense-search"
+            type="search"
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value)
+              setPage(1)
+            }}
+            placeholder="Search notes"
+            className="w-full min-w-0 rounded-md border border-[var(--line)] bg-[var(--panel)] px-2.5 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+          />
+          <label className="sr-only" htmlFor="expense-category-filter">Filter by category</label>
+          <select
+            id="expense-category-filter"
+            value={activeCategory}
+            onChange={(event) => {
+              setCategory(event.target.value)
+              setPage(1)
+            }}
+            className="min-w-0 rounded-md border border-[var(--line)] bg-[var(--panel)] px-2.5 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+          >
+            <option value="">All categories</option>
+            {categories.map((item) => (
+              <option key={item.name} value={item.name}>{item.name}</option>
+            ))}
+          </select>
+          <label className="sr-only" htmlFor="expense-sort">Sort expenses</label>
+          <select
+            id="expense-sort"
+            value={sortOrder}
+            onChange={(event) => {
+              setSortOrder(event.target.value)
+              setPage(1)
+            }}
+            className="min-w-0 rounded-md border border-[var(--line)] bg-[var(--panel)] px-2.5 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+          >
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="amount-high">Amount: high to low</option>
+            <option value="amount-low">Amount: low to high</option>
+            <option value="category">Category: A to Z</option>
+          </select>
+          <details className="min-w-0 rounded-md border border-[var(--line)] bg-[var(--panel)] px-3 py-2 sm:col-span-3">
             <summary className="cursor-pointer text-sm font-medium">More filters</summary>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <div className="grid grid-cols-2 gap-2">
@@ -207,7 +205,7 @@ export default function ExpenseList({ expenses, categories, onLoadSample, onEdit
                 setSortOrder('newest')
                 setPage(1)
               }}
-              className="justify-self-start cursor-pointer text-sm text-[var(--muted)] underline hover:text-[var(--text)]"
+              className="col-span-2 justify-self-start cursor-pointer text-sm text-[var(--muted)] underline hover:text-[var(--text)] sm:col-span-3"
             >
               Clear filters and sorting
             </button>
